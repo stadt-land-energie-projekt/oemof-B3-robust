@@ -1,4 +1,4 @@
-name: oemof-B3
+name: oemof-B3_test
 channels:
   - defaults
   - conda-forge
