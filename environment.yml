@@ -1,4 +1,4 @@
-name: oemof-B3_test
+name: oemof-B3-robust
 channels:
   - defaults
   - conda-forge
