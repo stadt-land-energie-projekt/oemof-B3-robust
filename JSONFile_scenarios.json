@@ -1,0 +1,18 @@
+{
+  "Preferences": {
+    "SettingName": "ScenarioAnalysis",
+    "SettingValue": 1,
+    "NumberOfPerturbations": 2,
+    "BaseScenName": "2050-100-el_eff"
+  },
+  "CostPerturbations": {
+    "CapacityCosts": [
+      {
+        "VariableName": "heatpump_large",
+        "PerturbationMethod": "distribution_uni",
+        "PerturbationParameter": [{"a": 0.1, "b": 0.2}, {"a": 0.5, "b": 0.6}],
+        "VariableUnit": "EUR/MW"
+      }
+    ]
+  }
+}
