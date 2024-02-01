@@ -2,15 +2,25 @@
   "Preferences": {
     "SettingName": "ScenarioAnalysis",
     "SettingValue": 1,
-    "NumberOfPerturbations": 2,
+    "NumberOfPerturbations": 1,
     "BaseScenName": "2050-100-el_eff"
   },
   "CostPerturbations": {
     "CapacityCosts": [
       {
-        "VariableName": "heatpump_large",
-        "PerturbationMethod": "distribution_uni",
-        "PerturbationParameter": [{"a": 0.1, "b": 0.2}, {"a": 0.5, "b": 0.6}],
+        "VariableName": "boiler_large",
+        "Carrier": "ch4",
+        "Region": "ALL",
+        "PerturbationMethod": "addition",
+        "PerturbationParameter": [-500, 500],
+        "VariableUnit": "EUR/MW"
+      },
+      {
+        "VariableName": "pv",
+        "Carrier": "solar",
+        "Region": "B",
+        "PerturbationMethod": "addition",
+        "PerturbationParameter": [-200, 100],
         "VariableUnit": "EUR/MW"
       }
     ]

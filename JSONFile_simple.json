@@ -9,26 +9,34 @@
     "MarginalCosts": [
       {
         "VariableName": "boiler_large",
+        "Carrier": "ch4",
+        "Region": "ALL",
         "PerturbationMethod": "multiplication",
         "PerturbationParameter": [0.5, 1.2],
         "VariableUnit": "EUR/MWh"
       },
       {
         "VariableName": "boiler_large",
+        "Carrier": "ch4",
+        "Region": "ALL",
         "PerturbationMethod": "distribution_stdNorm",
-        "PerturbationParameter": [{"m": 0.2, "s": 0.3}, {"m": 0.6, "s": 0.7}],
+        "PerturbationParameter": [{"m": 1, "s": 0.33}, {"m": 0.6, "s": 0.7}],
         "VariableUnit": "EUR/MWh"
       }
     ],
     "CapacityCosts": [
       {
         "VariableName": "heatpump_large",
+        "Carrier": "electricity",
+        "Region": "ALL",
         "PerturbationMethod": "addition",
         "PerturbationParameter": [500, 8000, 120000],
         "VariableUnit": "EUR/MW"
       },
       {
         "VariableName": "heatpump_large",
+        "Carrier": "electricity",
+        "Region": "ALL",
         "PerturbationMethod": "distribution_uni",
         "PerturbationParameter": [{"a": 0.1, "b": 0.2}, {"a": 0.5, "b": 0.6}],
         "VariableUnit": "EUR/MW"
