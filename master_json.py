@@ -38,7 +38,9 @@ def apply_perturbation(value, method, parameter):
     elif method == "distribution_uni":
         return value * random.uniform(parameter["a"], parameter["b"])
     elif method == "distribution_stdNorm":
-        return value * random.gauss(parameter["m"], parameter["s"])
+        #for normal distribution: mean = original value * m, sigma = original value * s
+        #we replace, not multiply
+        return random.gauss(value * parameter["m"], value * parameter["s"])
     else:
         return value  #No perturbation
 
@@ -61,22 +63,45 @@ def modify_scenario_csv_struct(variable_type, variable_name, param, perturbation
     var_value_index = header.index("var_value")
     var_name_index = header.index("var_name")
     tech_index = header.index("tech")
+    #perturbation only for the specific scenario
+    #fixed for now - maybe add the key to json file as well
+    key_index = header.index("scenario_key")
     var_value = 0
     temp_var_value = 0
     random_param = 0
 
     #Modify the var_value for the matching rows
-    for row in data:
-        if row[var_name_index] == variable_type and row[tech_index] == variable_name:
-            var_value = float(row[var_value_index])
-            temp_var_value = apply_perturbation(var_value, perturbation_method, param)
-            if perturbation_method in ["multiplication", "addition"]:
-                var_value = temp_var_value
-            else:
-                random_param = temp_var_value / var_value
-                var_value = temp_var_value
-            var_value = round(var_value, 2)  #Round to 2 decimal places
-            row[var_value_index] = str(var_value)
+    #For gt and bpchp careful bc there is 2 of them 
+    #temp solution for marginal cost calc
+    #same should be for storage but storage = 0 so meaningless
+    if variable_name in ["bpchp", "gt"]:
+        for row in data:
+            if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
+                var_value = float(row[var_value_index])
+                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                break
+        
+        for row in data:
+            if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
+                if perturbation_method in ["multiplication", "addition"]:
+                    var_value = temp_var_value
+                else:
+                    random_param = temp_var_value - var_value
+                    var_value = temp_var_value
+                var_value = round(var_value, 2)  #Round to 2 decimal places
+                row[var_value_index] = str(var_value)
+    else:
+        for row in data:
+            if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
+                var_value = float(row[var_value_index])
+                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                if perturbation_method in ["multiplication", "addition"]:
+                    var_value = temp_var_value
+                else:
+                    random_param = temp_var_value - var_value
+                    var_value = temp_var_value
+                var_value = round(var_value, 2)  #Round to 2 decimal places
+                row[var_value_index] = str(var_value)
     
     #Write the modified data to the output file
     with open(output_file, "w", newline='') as file:
@@ -183,7 +208,7 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
                                 "VariableName": perturbation["VariableName"],
                                 "OriginalPerturbationMethod": perturbation["PerturbationMethod"],
                                 "OriginalPerturbationParameter": [param],
-                                "PerturbationMethod": "multiplication",
+                                "PerturbationMethod": "addition",
                                 "PerturbationParameter": [random_param],
                                 "VariableUnit": perturbation["VariableUnit"]
                             }
