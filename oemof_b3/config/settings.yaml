@@ -15,11 +15,11 @@ build_datapackage:
 
 optimize:
   filename_metadata: datapackage.json
-  solver: cbc
+  solver: gurobi
   solve_kwargs:
     tee: True
     keepfiles: True
-  write_lp_file: False
+  write_lp_file: True
   cmdline_options:
     AllowableGap: 0.01
   debug: true
