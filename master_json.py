@@ -135,6 +135,8 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
         cost_type = "MarginalCosts"
     elif variable_type == "capacity_cost_overnight":
         cost_type = "CapacityCosts"
+    elif variable_type == "storage_capacity_cost_overnight":
+        cost_type = "StorageCosts"
             
 
     for perturbation in perturbation_data:
@@ -256,13 +258,16 @@ if __name__ == "__main__":
 
     marginal_cost_perturbation_data = []
     capacity_cost_perturbation_data = []
+    storage_cost_perturbation_data = []
 
     if "CostPerturbations" in input_data:
         if "MarginalCosts" in input_data["CostPerturbations"]:
             marginal_cost_perturbation_data += input_data["CostPerturbations"]["MarginalCosts"]
         if "CapacityCosts" in input_data["CostPerturbations"]:
             capacity_cost_perturbation_data += input_data["CostPerturbations"]["CapacityCosts"]
-        #NOT APPLICABLE YET
+        if "StorageCosts" in input_data["CostPerturbations"]:
+            storage_cost_perturbation_data += input_data["CostPerturbations"]["StorageCosts"]
+    #NOT APPLICABLE YET
     '''
     if "VariablePerturbations" in input_data["Preferences"]:
         perturbation_data += input_data["Preferences"]["VariablePerturbations"]
@@ -273,7 +278,8 @@ if __name__ == "__main__":
     #Calculate the total number of runs
     runs_marginal = count_scenarios(marginal_cost_perturbation_data, no_of_perturbations)
     runs_capacity = count_scenarios(capacity_cost_perturbation_data, no_of_perturbations)
+    runs_storage = count_scenarios(storage_cost_perturbation_data, no_of_perturbations)
 
     run_modified(scenario_name, new_scenario_name, marginal_cost_perturbation_data, "marginal_cost", preferences, 1)
     run_modified(scenario_name, new_scenario_name, capacity_cost_perturbation_data, "capacity_cost_overnight", preferences, runs_marginal+1)
-    
+    run_modified(scenario_name, new_scenario_name, storage_cost_perturbation_data, "storage_capacity_cost_overnight", preferences, runs_marginal+runs_capacity+1)
