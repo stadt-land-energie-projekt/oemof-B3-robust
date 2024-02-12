@@ -44,7 +44,7 @@ def apply_perturbation(value, method, parameter):
     else:
         return value  #No perturbation
 
-def modify_scenario_csv_struct(variable_type, variable_name, param, perturbation_method):
+def modify_scenario_csv_struct(variable_type, variable_name, region, carrier, param, perturbation_method):
 
     #Define the input and output file names
     input_file = "./raw.backup/scalars/costs_efficiencies.csv"
@@ -66,13 +66,19 @@ def modify_scenario_csv_struct(variable_type, variable_name, param, perturbation
     #perturbation only for the specific scenario
     #fixed for now - maybe add the key to json file as well
     key_index = header.index("scenario_key")
+    #for solar pv (temp solution?)
+    region_index = header.index("region")
+    #storage_capacity_cost_overnight for heat_central-storage and heat_decental-storage - temp solution?
+    carrier_index = header.index("carrier")
     var_value = 0
     temp_var_value = 0
     random_param = 0
 
     #Modify the var_value for the matching rows
-    #For gt and bpchp careful bc there is 2 of them 
-    #temp solution for marginal cost calc
+    #For gt and bpchp careful bc there is 2 of them
+    #temp solution for cost calc for gt and bpchp
+    #temp solution for capacity cost of solar pv (B and BB separately)
+    #storage_capacity_cost_overnight for heat_central-storage and heat_decental-storage perturbed separately - temp solution
     #same should be for storage but storage = 0 so meaningless
     if variable_name in ["bpchp", "gt"]:
         for row in data:
@@ -83,6 +89,30 @@ def modify_scenario_csv_struct(variable_type, variable_name, param, perturbation
         
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
+                if perturbation_method in ["multiplication", "addition"]:
+                    var_value = temp_var_value
+                else:
+                    random_param = temp_var_value - var_value
+                    var_value = temp_var_value
+                var_value = round(var_value, 2)  #Round to 2 decimal places
+                row[var_value_index] = str(var_value)
+    elif variable_name == "pv":
+        for row in data:
+            if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[region_index] == region and row[key_index] == "2050-base":
+                var_value = float(row[var_value_index])
+                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                if perturbation_method in ["multiplication", "addition"]:
+                    var_value = temp_var_value
+                else:
+                    random_param = temp_var_value - var_value
+                    var_value = temp_var_value
+                var_value = round(var_value, 2)  #Round to 2 decimal places
+                row[var_value_index] = str(var_value)
+    elif variable_type == "storage_capacity_cost_overnight" and variable_name == "storage":
+        for row in data:
+            if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[carrier_index] == carrier and row[key_index] == "2050-base":
+                var_value = float(row[var_value_index])
+                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
                 if perturbation_method in ["multiplication", "addition"]:
                     var_value = temp_var_value
                 else:
@@ -150,7 +180,7 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
                 print("RUNNING " + scenario_name + " SCENARIO WITH " + variable_type + " " + perturbation["PerturbationMethod"] + " PERTURBATION FOR " + perturbation["VariableName"] + ": " + str(i) + "/" + str(it))
                 print("-----")
                 
-                random_param = modify_scenario_csv_struct(variable_type, perturbation["VariableName"], param, perturbation["PerturbationMethod"])
+                random_param = modify_scenario_csv_struct(variable_type, perturbation["VariableName"], perturbation["Region"], perturbation["Carrier"], param, perturbation["PerturbationMethod"])
                 
                 os.system(f"snakemake -j{nb_cores} results/{new_scenario_name}/postprocessed")
 
@@ -165,6 +195,8 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
                         cost_type: [
                             {
                                 "VariableName": perturbation["VariableName"],
+                                "Carrier": perturbation["Carrier"],
+                                "Region": perturbation["Region"],
                                 "PerturbationMethod": perturbation["PerturbationMethod"],
                                 "PerturbationParameter": [param],
                                 "VariableUnit": perturbation["VariableUnit"]
@@ -195,7 +227,7 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
                     print("RUNNING " + scenario_name + " SCENARIO WITH " + variable_type + " " + perturbation["PerturbationMethod"] + " PERTURBATION FOR " + perturbation["VariableName"] + ": " + str(i) + "/" + str(it))
                     print("-----")
                 
-                    random_param = modify_scenario_csv_struct(variable_type, perturbation["VariableName"], param, perturbation["PerturbationMethod"])
+                    random_param = modify_scenario_csv_struct(variable_type, perturbation["VariableName"], perturbation["Region"], perturbation["Carrier"], param, perturbation["PerturbationMethod"])
                 
                     perturbation_info = {
                     "Preferences": {
@@ -208,6 +240,8 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
                         cost_type: [
                             {
                                 "VariableName": perturbation["VariableName"],
+                                "Carrier": perturbation["Carrier"],
+                                "Region": perturbation["Region"],
                                 "OriginalPerturbationMethod": perturbation["PerturbationMethod"],
                                 "OriginalPerturbationParameter": [param],
                                 "PerturbationMethod": "addition",
