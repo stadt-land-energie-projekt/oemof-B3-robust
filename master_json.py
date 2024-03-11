@@ -32,17 +32,20 @@ def count_scenarios(perturbation_data, no_of_perturbations):
 #Change for different modification methods
 def apply_perturbation(value, method, parameter):
     if method == "multiplication":
-        return value * parameter
+        result = value * parameter
     elif method == "addition":
-        return value + parameter
+        result = value + parameter
     elif method == "distribution_uni":
-        return value * random.uniform(parameter["a"], parameter["b"])
+        result = value * random.uniform(parameter["a"], parameter["b"])
     elif method == "distribution_stdNorm":
         #for normal distribution: mean = original value * m, sigma = original value * s
         #we replace, not multiply
-        return random.gauss(value * parameter["m"], value * parameter["s"])
+        result = random.gauss(value * parameter["m"], value * parameter["s"])
     else:
-        return value  #No perturbation
+        result = value  #No perturbation
+    
+    #making sure the cost is never below 1 cent
+    return max(result, 0.01)
 
 def modify_scenario_csv_struct(variable_type, variable_name, region, carrier, param, perturbation_method):
 
@@ -170,7 +173,6 @@ def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_t
             
 
     for perturbation in perturbation_data:
-        
         if perturbation["PerturbationMethod"] in ["multiplication", "addition"]:
             i=1
             it = len(perturbation["PerturbationParameter"])
