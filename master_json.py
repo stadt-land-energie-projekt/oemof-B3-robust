@@ -37,10 +37,12 @@ def apply_perturbation(value, method, parameter):
         result = value + parameter
     elif method == "distribution_uni":
         result = value * random.uniform(parameter["a"], parameter["b"])
+        result = round(result, 2)
     elif method == "distribution_stdNorm":
         #for normal distribution: mean = original value * m, sigma = original value * s
         #we replace, not multiply
         result = random.gauss(value * parameter["m"], value * parameter["s"])
+        result = round(result, 2)
     else:
         result = value  #No perturbation
     
@@ -73,9 +75,10 @@ def modify_scenario_csv_struct(variable_type, variable_name, region, carrier, pa
     region_index = header.index("region")
     #storage_capacity_cost_overnight for heat_central-storage and heat_decental-storage - temp solution?
     carrier_index = header.index("carrier")
-    var_value = 0
-    temp_var_value = 0
-    random_param = 0
+    var_value = 0.0
+    old_var_value = 0.0
+    new_var_value = 0.0
+    random_param = 0.0
 
     #Modify the var_value for the matching rows
     #For gt and bpchp careful bc there is 2 of them
@@ -87,53 +90,57 @@ def modify_scenario_csv_struct(variable_type, variable_name, region, carrier, pa
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
                 var_value = float(row[var_value_index])
-                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                old_var_value = var_value
+                new_var_value = apply_perturbation(var_value, perturbation_method, param)
                 break
         
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
                 if perturbation_method in ["multiplication", "addition"]:
-                    var_value = temp_var_value
+                    var_value = new_var_value
                 else:
-                    random_param = temp_var_value - var_value
-                    var_value = temp_var_value
-                var_value = round(var_value, 2)  #Round to 2 decimal places
+                    random_param = new_var_value - old_var_value
+                    var_value = new_var_value
+                #var_value = round(var_value, 2)  #Round to 2 decimal places
                 row[var_value_index] = str(var_value)
     elif variable_name == "pv":
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[region_index] == region and row[key_index] == "2050-base":
                 var_value = float(row[var_value_index])
-                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                old_var_value = var_value
+                new_var_value = apply_perturbation(var_value, perturbation_method, param)
                 if perturbation_method in ["multiplication", "addition"]:
-                    var_value = temp_var_value
+                    var_value = new_var_value
                 else:
-                    random_param = temp_var_value - var_value
-                    var_value = temp_var_value
-                var_value = round(var_value, 2)  #Round to 2 decimal places
+                    random_param = new_var_value - old_var_value
+                    var_value = new_var_value
+                #var_value = round(var_value, 2)  #Round to 2 decimal places
                 row[var_value_index] = str(var_value)
     elif variable_type == "storage_capacity_cost_overnight" and variable_name == "storage":
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[carrier_index] == carrier and row[key_index] == "2050-base":
                 var_value = float(row[var_value_index])
-                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                old_var_value = var_value
+                new_var_value = apply_perturbation(var_value, perturbation_method, param)
                 if perturbation_method in ["multiplication", "addition"]:
-                    var_value = temp_var_value
+                    var_value = new_var_value
                 else:
-                    random_param = temp_var_value - var_value
-                    var_value = temp_var_value
-                var_value = round(var_value, 2)  #Round to 2 decimal places
-                row[var_value_index] = str(var_value)
+                    random_param = new_var_value - old_var_value
+                    var_value = new_var_value
+                #var_value = round(var_value, 2)  #Round to 2 decimal places
+                row[var_value_index] = str(var_value) #CONSIDER changing to str(new_var_value and then would beshorter
     else:
         for row in data:
             if row[var_name_index] == variable_type and row[tech_index] == variable_name and row[key_index] == "2050-base":
                 var_value = float(row[var_value_index])
-                temp_var_value = apply_perturbation(var_value, perturbation_method, param)
+                old_var_value = var_value
+                new_var_value = apply_perturbation(var_value, perturbation_method, param)
                 if perturbation_method in ["multiplication", "addition"]:
-                    var_value = temp_var_value
+                    var_value = new_var_value
                 else:
-                    random_param = temp_var_value - var_value
-                    var_value = temp_var_value
-                var_value = round(var_value, 2)  #Round to 2 decimal places
+                    random_param = new_var_value - old_var_value
+                    var_value = new_var_value
+                #var_value = round(var_value, 2)  #Round to 2 decimal places
                 row[var_value_index] = str(var_value)
     
     #Write the modified data to the output file
@@ -148,6 +155,7 @@ def modify_scenario_csv_struct(variable_type, variable_name, region, carrier, pa
 
     print("Modifications complete. The updated data has been written to ./raw/scalars/costs_efficiencies.csv")
 
+    random_param = round(random_param, 2)
     return random_param
 
 def run_modified(scenario_name, new_scenario_name, perturbation_data, variable_type, preferences, start_folder):
