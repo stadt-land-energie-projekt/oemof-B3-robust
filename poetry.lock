@@ -1956,7 +1956,7 @@ examples = ["matplotlib"]
 type = "git"
 url = "https://github.com/stadt-land-energie-projekt/oemof-solph.git"
 reference = "v0.5.2dev0-robust"
-resolved_reference = "1872962e0c9232bcb2c2df9c0910a27e48401836"
+resolved_reference = "5031d39d986b90456c52dca4bdebae608fe91492"
 
 [[package]]
 name = "oemof.tabular"
